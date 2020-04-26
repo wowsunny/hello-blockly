@@ -1,0 +1,9 @@
+.InputTab {
+    padding: 15px;
+}
+
+.InputTab input {
+    width: 350px;
+    height: 40px;
+    border-radius: 15px;
+}

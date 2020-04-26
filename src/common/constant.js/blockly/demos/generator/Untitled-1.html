@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../../blockly_compressed.js"></script>
+    <script src="../../blocks_compressed.js"></script>
+    <script src="../../javascript_compressed.js"></script>
+    <script src="../../msg/js/zh-hans.js"></script>
+    <link rel="stylesheet" href="./setToolBox.css">
+</head>
+
+<body>
+    <div id="controlBox">
+        <p>Your Categories:</p>
+        <table>
+            <tbody id="tbody">
+                <tr id="optionButton">
+                    <td>
+                        <button onclick="addcategory()">addcategory</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="makeWorkspace"></div>
+    <div id="preWorkspace"></div>
+    <xml xmlns="https://developers.google.com/blockly/xml" id="workspace" style="display: none">
+    </xml>
+    <xml xmlns="https://developers.google.com/blockly/xml" id="preview" style="display: none">
+    </xml>
+    <xml xmlns="https://developers.google.com/blockly/xml" id="preToolbox" style="display: none">
+
+    </xml>
+
+    <br>
+    <textarea id='code' style="width: 500px; height: 300px;margin-left: 100px;"></textarea>
+    <textarea id='blockcode' style="width: 500px; height: 300px;margin-left: 300px;"></textarea>
+    <br/>
+
+
+
+
+
+    <script>
+        var workspaceToolboxXml;
+        var previewToolboxXml;
+        var xmlhttp = new window.XMLHttpRequest();
+        var Categories = new Array(0);
+        var BlockXml;
+        var workingCat = {
+            "a": null
+        };
+
+
+
+
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            workspaceToolboxXml = xmlhttp.responseXML.documentElement;
+        }
+
+        // const Http = new XMLHttpRequest();
+        // const url = "localhost://5500/toolbox.xml";
+        // Http.open("GET", url);
+        // HTTP.send();
+        // Http.onreadystatechange = function() {
+        //     if (this.readyState == 4 && this.status == 200) {
+        //         console.log(Http.responseText)
+        //     }
+        // }
+
+        var demoWorkspace = Blockly.inject('makeWorkspace', {
+            media: '../../media/',
+            toolbox: workspaceToolboxXml
+        });
+
+        var preWorkspace = Blockly.inject('preWorkspace', {
+            media: '../../media/',
+            toolbox: document.getElementById('preToolbox')
+        });
+
+
+        function getCode() {
+            var code = Blockly.JavaScript.workspaceToCode(demoWorkspace);
+            var argument = 10;
+            workCode = "var answer_list=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argument + ");\n";
+            return workCode;
+        }
+
+        function upDataCode(event) {
+            var element = document.getElementById("code");
+            var workCode = getCode();
+            element.innerHTML = workCode;
+
+            var element2 = document.getElementById('blockcode');
+            BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+
+            var newCate = document.createElement("Category");
+            log
+            newCate.setAttribute('name', 1);
+            childs = BlockXml.childNodes;
+
+            for (var i = 0; i < childs.length; i += 1) {
+                var block = document.createElement("block");
+                block.setAttribute('type', childs[i].getAttribute('type'));
+                newCate.appendChild(block);
+
+            }
+
+            var preToolboxCode = document.createElement("xml");
+            preToolboxCode.setAttribute('xmlns', "https://developers.google.com/blockly/xml");
+            preToolboxCode.appendChild(newCate);
+            console.log(preToolboxCode);
+            e = document.getElementById('preWorkspace');
+            e.innerHTML = "";
+            var preWorkspace = Blockly.inject('preWorkspace', {
+                media: '../../media/',
+                toolbox: preToolboxCode
+            });
+
+
+
+        }
+        demoWorkspace.addChangeListener(upDataCode);
+
+        function sendXml() {
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+            data = {
+                xml: BlockXml
+            }
+
+            const Http = new XMLHttpRequest();
+            const url = "https://www.baidu.com";
+            Http.open("post", url);
+            Http.send(data);
+        }
+
+
+        Object.defineProperty(workingCat, "a", {
+            get: function() {
+                console.log("触发get");
+            },
+            set: function() {
+                console.log("触发set");
+
+            }
+        });
+
+        function addcategory(e) {
+            data = prompt("请输入新的目录名:");
+            if (data.length > 0) {
+                controlBox = document.getElementById("controlBox");
+                var newTr = document.createElement('tr');
+                var newTd = document.createElement('td');
+                newTd.innerText = data;
+                newTd.className = "categoryName";
+                newTr.appendChild(newTd);
+                var button = document.getElementById("optionButton");
+                var tbody = document.getElementById("tbody");
+                tbody.insertBefore(newTr, button);
+
+                var Categories = document.getElementsByClassName("categoryName");
+                for (var i = 0; i < Categories.length; i += 1) {
+                    Categories[i].onclick = function(e) {
+                        console.log('触发click');
+                        workingCat.a = i;
+                        e.preventDefault();
+                    }
+
+                }
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>

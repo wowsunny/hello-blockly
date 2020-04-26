@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../../blockly_compressed.js"></script>
+    <script src="../../blocks_compressed.js"></script>
+    <script src="../../javascript_compressed.js"></script>
+    <script src="../../msg/js/zh-hans.js"></script>
+    <link rel="stylesheet" href="./setWorkspace.css">
+</head>
+
+<body>
+    <div class="Station" id="workspace"></div>
+    <div class="Station" id="optionBox">
+        <div id="bench">
+            <div class="table">
+                <div class="tableText">JavaScriptCode:</div>
+                <textarea class="text" id="jsCode"></textarea>
+                <div class="tableText">BlocklyCode:</div>
+                <textarea class="text" id="blocklyCode"></textarea>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var Bworkspace;
+    setWorkspace();
+
+    function setWorkspace(params) {
+        var xmlhttp = new window.XMLHttpRequest();
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            var WXml = xmlhttp.responseXML.documentElement;
+        }
+
+        workspace = document.getElementById("workspace");
+        workspace.innerHTML = "";
+        Bworkspace = Blockly.inject("workspace", {
+            media: '../../media/',
+            toolbox: WXml
+        });
+        Bworkspace.addChangeListener(upData);
+    }
+
+    function getModule(index, code, argument) {
+        workCode = "var answer_list=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argument + ");\n";
+        return workCode;
+    }
+
+    function getCode(params) {
+        var code = Blockly.JavaScript.workspaceToCode(Bworkspace);
+        var argument = 10;
+        var workCode = getModule(1, code, argument);
+        return workCode;
+    }
+
+    function upData(params) {
+        //updata javascript code.
+        var code = getCode();
+        var jstextarea = document.getElementById('jsCode');
+        jstextarea.innerHTML = code;
+
+        //updata Blockly code.
+        var Bcode = Blockly.Xml.workspaceToDom(Bworkspace);
+        var btextarea = document.getElementById('blocklyCode');
+        btextarea.innerHTML = Blockly.Xml.domToPrettyText(Bcode);
+
+    }
+</script>
+
+</html>

@@ -1,0 +1,63 @@
+.controlBox {
+    display: table;
+    width: 250px;
+    height: auto;
+    background-color: rgb(240, 239, 239);
+    text-align: center;
+    float: left;
+    margin-left: 20px;
+    margin-top: 50px;
+    padding-bottom: 20px;
+}
+
+xml {
+    display: none;
+}
+
+#workspace {
+    width: 500px;
+    height: 600px;
+    background-color: antiquewhite;
+    float: left;
+    margin-left: 30px;
+    margin-top: 50px;
+}
+
+#prespace {
+    width: 500px;
+    height: 600px;
+    background-color: antiquewhite;
+    float: left;
+    margin-left: 30px;
+    margin-top: 50px;
+}
+
+table {
+    margin: auto;
+}
+
+tr {
+    display: table-row;
+    width: 100%;
+    text-align: center;
+    background-color: lightgray;
+}
+
+td {
+    display: table-cell;
+    padding: 5px 19px;
+}
+
+.mainCategory {
+    background-color: darkgray;
+}
+
+.normalCategory {
+    background-color: lightgray;
+}
+
+.postButton {
+    width: 60px;
+    height: 25px;
+    margin-top: 30px;
+}

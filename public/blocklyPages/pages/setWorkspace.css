@@ -1,0 +1,88 @@
+.controlBox {
+    display: table;
+    width: 250px;
+    height: auto;
+    float: left;
+    background-color: rgb(240, 239, 239);
+    text-align: center;
+    margin-left: 20px;
+    margin-top: 50px;
+    padding-bottom: 20px;
+}
+
+table {
+    margin: auto;
+}
+
+tr {
+    display: table-row;
+    width: 100%;
+    text-align: center;
+    background-color: lightgray;
+}
+
+tr::before {
+    content: "";
+    padding: 5px;
+    display: table-cell;
+    background-color: aquamarine;
+}
+
+tr.optionButton::before {
+    background-color: rgb(99, 175, 150);
+}
+
+td {
+    display: table-cell;
+    padding: 5px 19px;
+}
+
+.normalTr {
+    background-color: lightgray;
+}
+
+.mainTr {
+    background-color: darkgray;
+}
+
+.Station {
+    width: 500px;
+    height: 600px;
+    margin-left: 30px;
+    margin-top: 50px;
+    float: left;
+    background-color: blanchedalmond;
+}
+
+#optionBox {
+    width: auto;
+    height: auto;
+    padding: 15px;
+}
+
+xml {
+    display: none;
+}
+
+#bench {
+    column-count: 2;
+    column-gap: 1;
+    /* background-color: rgb(236, 201, 168); */
+    border: 1px solid darkgray;
+}
+
+.text {
+    position: relative;
+    width: 98%;
+    height: 250px;
+}
+
+.tableText {
+    position: relative;
+}
+
+.postButton {
+    width: 60px;
+    height: 25px;
+    margin-top: 30px;
+}

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../blockly_compressed.js"></script>
+    <script src="../blocks_compressed.js"></script>
+    <script src="../javascript_compressed.js"></script>
+    <script src="../msg/js/zh-hans.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+    <script src="./addBlock.js"></script>
+</head>
+
+<body>
+    <textarea name="topic" id="topic" style="width:80%;height:100px; margin-left: 10%;">
+        请循环输出十以内的所有整数（包括十，不包括0）
+    </textarea>
+    <br>
+    <br>
+    <div id="makeWorkspace" style="width: 600px;height: 600px; background-color: antiquewhite; display: inline-block;margin-left: 100px;"></div>
+
+    <xml xmlns="https://developers.google.com/blockly/xml" id="workspace" style="display: none">
+
+    </xml>
+
+    <textarea id='jsCode' style="width: 500px; height: 300px;margin-left: 100px;float: right;position: absolute; right: 50px;"></textarea>
+    <textarea id='blockCode' style="width: 500px; height: 300px;margin-left: 100px;position: absolute;right: 50px;top: 350px;"></textarea>
+    <br/>
+    <button onclick="test()" style="margin-left: 70%;">test</button>
+    <button onclick="sendXml()">send</button>
+
+
+
+
+    <script>
+        var answer;
+        var toolboxXml;
+        var xmlhttp = new window.XMLHttpRequest();
+        var argumentList = new Array(0);
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            toolboxXml = xmlhttp.responseXML.documentElement;
+        }
+
+        var demoWorkspace = Blockly.inject('makeWorkspace', {
+            media: '../media/',
+            toolbox: toolboxXml
+        });
+
+        function test(params) {
+            var workCode = getCode();
+            var tempAnswer;
+            workCode += "\nalert(answerList);\ntempAnswer = answerList;"
+            eval(workCode);
+            console.log(answer.toString(), "[" + tempAnswer.toString() + "]", "[" + tempAnswer.toString() + "]" == answer.toString());
+            alert("[" + tempAnswer.toString() + "]" == answer.toString());
+        }
+
+        function getModule(index, code, argumentList) {
+            if (index == 1) {
+                var argus = "";
+                //添加引号
+                for (let index = 0; index < argumentList.length; index++) {
+                    const str = argumentList[index];
+                    argus = argus + "\"" + str + "\"";
+                }
+
+                //添加逗号
+                argus = argus.replace(/""/g, "\",\"");
+
+                workCode = "var answerList=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argus + ");\n";
+            }
+            return workCode;
+        }
+
+        function getCode() {
+            var code = Blockly.JavaScript.workspaceToCode(demoWorkspace);
+            workCode = getModule(1, code, argumentList);
+            return workCode;
+        }
+
+        function upDataCode(event) {
+            console.log("call updata");
+
+            var element = document.getElementById("jsCode");
+            var workCode = getCode();
+            element.innerHTML = workCode;
+            var element2 = document.getElementById('blockCode');
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+            element2.innerHTML = Blockly.Xml.domToPrettyText(BlockXml);
+        }
+
+        if (demoWorkspace) demoWorkspace.addChangeListener(upDataCode);
+        else console.log("no demoworkspace");
+
+
+        function sendXml() {
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+
+            console.log(Blockly.Xml.domToText(BlockXml));
+            // temp = {
+            //     data: Blockly.Xml.domToText(BlockXml)
+            // }
+            // sendData = JSON.stringify(temp);
+            str = Blockly.Xml.domToPrettyText(BlockXml);
+            // console.log(sendData);
+
+            const Http = new XMLHttpRequest();
+            const url = "http://yngsh.natapp1.cc/finishedHomework";
+            Http.open("post", url, true);
+            Http.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded', 'Access-Control-Allow-Origin: *');
+            console.log(str);
+
+            Http.send("data=" + str);
+        }
+        //回调函数
+        function receiveMessageFromIndex(event) {
+            console.log('我是iframe,我接受到了：', event.data);
+            var data = event.data;
+            var topic = document.getElementById("topic");
+            topic.innerHTML = data.homeworkBody;
+            var toolboxXml = data.toolboxBlock;
+            var workspaceXml = data.workspaceBlock;
+            answer = data.homeworkAnsw;
+
+            //刷新工具箱
+            e = document.getElementById("makeWorkspace");
+            e.innerHTML = "";
+            demoWorkspace = Blockly.inject('makeWorkspace', {
+                media: '../media/',
+                toolbox: toolboxXml
+            });
+            if (demoWorkspace) demoWorkspace.addChangeListener(upDataCode);
+            else console.log("no demoworkspace");
+
+            //植入工作区
+            workspaceXml = Blockly.Xml.textToDom(workspaceXml);
+            if (workspaceXml) Blockly.Xml.domToWorkspace(workspaceXml, demoWorkspace);
+            else console.log("the workspaceXml is null");
+
+            //设置getCode参数
+            argumentList = data.argumentList;
+        }
+
+        //监听message事件
+        window.addEventListener("message", receiveMessageFromIndex, false);
+    </script>
+
+</body>
+
+</html>

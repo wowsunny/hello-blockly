@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../../blockly_compressed.js"></script>
+    <script src="../../blocks_compressed.js"></script>
+    <script src="../../javascript_compressed.js"></script>
+    <script src="../../msg/js/zh-hans.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+</head>
+
+<body>
+    <textarea name="topic" id="topic" style="width:80%;height:100px; margin-left: 10%;">
+        请循环输出十以内的所有整数（包括十，不包括0）
+    </textarea>
+    <br>
+    <br>
+    <div id="makeWorkspace" style="width: 600px;height: 600px; background-color: antiquewhite; display: inline-block;margin-left: 100px;"></div>
+
+    <xml xmlns="https://developers.google.com/blockly/xml" id="workspace" style="display: none">
+
+    </xml>
+
+    <textarea id='code' style="width: 500px; height: 300px;margin-left: 100px;float: right;position: absolute; right: 50px;"></textarea>
+    <textarea id='blockcode' style="width: 500px; height: 300px;margin-left: 100px;position: absolute;right: 50px;top: 350px;"></textarea>
+    <br/>
+    <button onclick="sendXml()" style="margin-left: 70%;">send</button>
+
+
+
+
+    <script>
+        var toolboxXml;
+        var xmlhttp = new window.XMLHttpRequest();
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            toolboxXml = xmlhttp.responseXML.documentElement;
+        }
+
+        // const Http = new XMLHttpRequest();
+        // const url = "localhost://5500/toolbox.xml";
+        // Http.open("GET", url);
+        // HTTP.send();
+        // Http.onreadystatechange = function() {
+        //     if (this.readyState == 4 && this.status == 200) {
+        //         console.log(Http.responseText)
+        //     }
+        // }
+
+        var demoWorkspace = Blockly.inject('makeWorkspace', {
+            media: '../../media/',
+            toolbox: toolboxXml
+        });
+
+
+        function getCode() {
+            var code = Blockly.JavaScript.workspaceToCode(demoWorkspace);
+            var argument = 10;
+            workCode = "var answer_list=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argument + ");\n";
+            return workCode;
+        }
+
+        function upDataCode(event) {
+            var element = document.getElementById("code");
+            var workCode = getCode();
+            element.innerHTML = workCode;
+            var element2 = document.getElementById('blockcode');
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+            element2.innerHTML = Blockly.Xml.domToPrettyText(BlockXml);
+        }
+        demoWorkspace.addChangeListener(upDataCode);
+
+        document.getElementById('showcode').addEventListener('click',
+            function() {
+                //console.log(Blockly.Xml.workspaceToDom(demoWorkspace));
+
+            });
+
+        function sendXml() {
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+
+            console.log(Blockly.Xml.domToText(BlockXml));
+            temp = {
+                data: Blockly.Xml.domToText(BlockXml)
+            }
+            sendData = JSON.stringify(temp);
+            console.log(sendData);
+
+            const Http = new XMLHttpRequest();
+            const url = "http://yngsh.natapp1.cc/finishedHomework";
+            Http.open("post", url, true);
+            Http.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded', 'Access-Control-Allow-Origin: *');
+            Http.send("data=" + sendData);
+        }
+    </script>
+
+</body>
+
+</html>

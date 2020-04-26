@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../blockly_compressed.js"></script>
+    <script src="../blocks_compressed.js"></script>
+    <script src="../javascript_compressed.js"></script>
+    <script src="../msg/js/zh-hans.js"></script>
+    <script src="./addBlock.js"></script>
+    <link rel="stylesheet" href="./setWorkspace.css">
+</head>
+
+<body>
+    <div class="controlBox">
+        <p>Your argument:</p>
+        <table>
+            <tbody class="tbody">
+                <tr class="optionButton">
+                    <td>
+                        <button onclick="addArgu()">add argument</button>
+                    </td>
+                </tr>
+                <tr class="optionButton">
+                    <td>
+                        <button onclick="editArgu()">edit argument</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="postButton" onclick="postData()">post</button>
+    </div>
+    <div class="Station" id="workspace"></div>
+    <div class="Station" id="optionBox">
+        <div id="bench">
+            <div class="table">
+                <div class="tableText">JavaScriptCode:</div>
+                <textarea class="text" id="jsCode"></textarea>
+                <div class="tableText">BlocklyCode:</div>
+                <textarea class="text" id="blocklyCode"></textarea>
+                <div class="tableText">Enter the body of the homework:</div>
+                <textarea class="text" id="homeworkBody"></textarea>
+                <div class="tableText">Enter the answer of the homework</div>
+                <textarea class="text" id="homeworkAnsw"></textarea>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    var Bworkspace;
+    setWorkspace();
+
+    function setWorkspace(params) {
+        var xmlhttp = new window.XMLHttpRequest();
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            var WXml = xmlhttp.responseXML.documentElement;
+        }
+
+        workspace = document.getElementById("workspace");
+        workspace.innerHTML = "";
+        Bworkspace = Blockly.inject("workspace", {
+            media: '../media/',
+            toolbox: WXml
+        });
+        Bworkspace.addChangeListener(upData);
+    }
+
+    function getModule(index, code, argumentList) {
+        if (index == 1) {
+            var argus = "";
+            //添加引号
+            for (let index = 0; index < argumentList.length; index++) {
+                const str = argumentList[index];
+                argus = argus + "\"" + str + "\"";
+            }
+            //添加逗号
+            argus = argus.replace(/""/g, "\",\"");
+
+            workCode = "var answerList=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argus + ");\n";
+        }
+        return workCode;
+    }
+
+    function getCode(params) {
+        var code = Blockly.JavaScript.workspaceToCode(Bworkspace);
+        var argumentList = new Array(0);
+        var tdList = document.getElementsByClassName("argumentTag");
+        for (let index = 0; index < tdList.length; index++) {
+            const td = tdList[index];
+            argumentList.push(td.innerHTML);
+        }
+        workCode = getModule(1, code, argumentList);
+        return workCode;
+
+    }
+
+    function upData(params) {
+        //updata javascript code.
+        var code = getCode();
+        var jstextarea = document.getElementById('jsCode');
+        jstextarea.innerHTML = code;
+
+        //updata Blockly code.
+        var Bcode = Blockly.Xml.workspaceToDom(Bworkspace);
+        var btextarea = document.getElementById('blocklyCode');
+        btextarea.innerHTML = Blockly.Xml.domToPrettyText(Bcode);
+
+    }
+
+    function addArgu(params) {
+        data = prompt("请输入新的传入参数的值:");
+        if (!data) return;
+        //组合新节点
+        var controlBox = document.getElementById('controlBox');
+        var newTr = document.createElement('tr');
+        var newTd = document.createElement('td');
+        newTd.innerText = data;
+        newTd.className = "argumentTag";
+        newTr.className = "normalTr";
+        newTr.appendChild(newTd);
+
+        var TrList = document.getElementsByClassName("normalTr");
+        newTr.setAttribute("data-id", TrList.length);
+        console.log(newTr);
+
+        newTr.onclick = function(params) {
+            var oldMain = document.getElementsByClassName("mainTr")[0];
+            if (oldMain) oldMain.className = "normalTr";
+            this.className = "mainTr";
+            console.log(this);
+        }
+
+        //插入节点
+        var button = document.getElementsByClassName("optionButton");
+        var tbody = document.getElementsByClassName("tbody");
+        tbody[0].insertBefore(newTr, button[0]);
+
+        //刷新
+    }
+
+    function editArgu(params) {
+        var data = prompt("请输入新的参数值：");
+        var mainTr = document.getElementsByClassName('mainTr')[0];
+        if (!mainTr) return;
+        if (data) {
+            oldTd = mainTr.getElementsByTagName("td")[0];
+            newTd = document.createElement("td");
+            newTd.innerHTML = data;
+            mainTr.removeChild(oldTd);
+            mainTr.appendChild(newTd);
+        } else {
+            var tbody = document.getElementsByClassName('tbody')[0];
+            tbody.removeChild(mainTr);
+        }
+    }
+
+    function postData() {
+        console.log("post");
+        var workspace = Blockly.Xml.workspaceToDom(Bworkspace);
+        var Bcode = Blockly.Xml.domToPrettyText(workspace);
+
+        var testBody = document.getElementById("homeworkBody").value;
+        var testAnsw = document.getElementById("homeworkAnsw").value;
+        var argumentList = new Array(0);
+        var tdList = document.getElementsByClassName("argumentTag");
+        for (let index = 0; index < tdList.length; index++) {
+            const td = tdList[index];
+            argumentList.push(td.innerHTML);
+        }
+        var data = {
+            type: "workspace",
+            code: Bcode,
+            homeworkBody: testBody,
+            homeworkAnsw: testAnsw,
+            argumentList: argumentList
+        }
+        parent.postMessage(data, "*");
+    }
+</script>
+
+</html>

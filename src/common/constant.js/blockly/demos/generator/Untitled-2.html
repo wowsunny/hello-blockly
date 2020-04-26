@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../../blockly_compressed.js"></script>
+    <script src="../../blocks_compressed.js"></script>
+    <script src="../../javascript_compressed.js"></script>
+    <script src="../../msg/js/zh-hans.js"></script>
+    <link rel="stylesheet" href="./setWorkspace.css">
+</head>
+
+<body>
+    <a href="./setToolBox.html">setToolbox</a>
+    <br/>
+    <button id="showcode">showcode</button>
+    <button id="preview">preview</button>
+    <br>
+    <br>
+    <div id="makeWorkspace" class="Station"></div>
+    <div id="preWorkspace" class="Station"></div>
+    <xml xmlns="https://developers.google.com/blockly/xml" id="workspace" style="display: none">
+
+    </xml>
+    <br>
+    <textarea id='code' style="width: 500px; height: 300px;margin-left: 100px;"></textarea>
+    <textarea id='blockcode' style="width: 500px; height: 300px;margin-left: 100px;"></textarea>
+    <br/>
+    <button onclick="sendXml()" style="margin-left: 70%;">send</button>
+
+
+
+
+    <script>
+        var toolboxXml;
+        var xmlhttp = new window.XMLHttpRequest();
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            toolboxXml = xmlhttp.responseXML.documentElement;
+        }
+
+        var demoWorkspace = Blockly.inject('makeWorkspace', {
+            media: '../../media/',
+            toolbox: toolboxXml
+        });
+
+        var preWorkspace = Blockly.inject('preWorkspace', {
+            media: '../../media/',
+            // toolbox: document.getElementById('toolbox')
+        });
+
+
+        function getCode() {
+            var code = Blockly.JavaScript.workspaceToCode(demoWorkspace);
+            var argument = 10;
+            workCode = "var answer_list=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argument + ");\n";
+            return workCode;
+        }
+
+        function upDataPre(xml, Workspace) {
+            Workspace.clear();
+            Blockly.Xml.domToWorkspace(xml, Workspace);
+        }
+
+        function upDataCode(event) {
+            var element = document.getElementById("code");
+            var workCode = getCode();
+            element.innerHTML = workCode;
+            var element2 = document.getElementById('blockcode');
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+            element2.innerHTML = Blockly.Xml.domToPrettyText(BlockXml);
+            upDataPre(BlockXml, preWorkspace)
+        }
+        demoWorkspace.addChangeListener(upDataCode);
+
+        document.getElementById('showcode').addEventListener('click',
+            function() {
+                console.log(Blockly.Xml.workspaceToDom(demoWorkspace));
+
+            });
+
+        function sendXml() {
+            var BlockXml = Blockly.Xml.workspaceToDom(demoWorkspace);
+            console.log(BlockXml);
+            data = {
+                xml: BlockXml
+            }
+            console.log(data);
+
+            const Http = new XMLHttpRequest();
+            const url = "https://www.baidu.com";
+            Http.open("post", url);
+            Http.send(data);
+        }
+    </script>
+
+</body>
+
+</html>

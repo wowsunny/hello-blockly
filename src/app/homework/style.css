@@ -1,0 +1,9 @@
+.workStation {
+    width: 100%;
+    height: 800px;
+}
+
+.workStation iframe {
+    width: 100%;
+    height: 100%;
+}

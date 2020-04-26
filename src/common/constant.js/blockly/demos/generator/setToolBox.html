@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Blockly</title>
+    <script src="../../blockly_compressed.js"></script>
+    <script src="../../blocks_compressed.js"></script>
+    <script src="../../javascript_compressed.js"></script>
+    <script src="../../msg/js/zh-hans.js"></script>
+    <link rel="stylesheet" href="./setToolBox.css">
+</head>
+
+<body>
+    <button onclick="changePage()">setworkspace</button>
+    <br/>
+    <br/>
+    <div class="controlBox">
+        <p>Your Categories:</p>
+        <table>
+            <tbody class="tbody">
+                <tr class="optionButton">
+                    <td>
+                        <button onclick="addCate()">addcategory</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="BlocklyStation" id="workspace"></div>
+    <div class="BlocklyStation" id="prespace"></div>
+    <xml id="WXml" xmlns="https://developers.google.com/blockly/xml"></xml>
+    <xml id="PXml" xmlns="https://developers.google.com/blockly/xml"></xml>
+
+</body>
+<script>
+    var Bworkspace;
+    var Bprespace;
+    var preBlockXml = document.createElement("xml");
+    setWXml();
+    setPXml(document.getElementById("PXml"));
+    /*
+     *the structure of the categories:
+     *{
+     *   main: boolean,
+     *   name: string,
+     *   Wxml:  xml,
+     *   Pxml:  xml
+     *}
+     */
+    Categories = new Array(0);
+
+    function setWXml(params) {
+        var xmlhttp = new window.XMLHttpRequest();
+        xmlhttp.open("GET", 'toolbox.xml', false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState == 4) {
+            var WXml = xmlhttp.responseXML.documentElement;
+        }
+
+        var workspace = document.getElementById("workspace");
+        workspace.innerHTML = "";
+        Bworkspace = Blockly.inject("workspace", {
+            media: '../../media/',
+            toolbox: WXml
+        });
+        Bworkspace.addChangeListener(upDataP);
+    }
+
+    function setPXml(xml) {
+        var workspace = document.getElementById("prespace");
+        workspace.innerHTML = "";
+        Bprespace = Blockly.inject("prespace", {
+            media: '../../media/',
+            toolbox: xml
+        });
+    }
+
+    function getCode(workspace) {
+        var code = Blockly.JavaScript.workspaceToCode(workspace);
+        var argument = 10;
+        workCode = "var answer_list=new Array;\nfunction test(){\n " + code + " \n}\ntest(" + argument + ");\n";
+        return workCode;
+    }
+
+    function putBlockIn(blocks, xml) {
+        for (var i = 0; i < blocks.length; i += 1) {
+            var block = document.createElement("block");
+            block.setAttribute('type', blocks[i].getAttribute('type'));
+            xml.appendChild(block);
+        }
+        return xml;
+    }
+
+    function upDataP(params) { //updata是更新prespace的
+        var blockXml = Blockly.Xml.workspaceToDom(Bworkspace);
+        console.log(blockXml);
+
+        mainIndex = getMainIndex();
+        childs = blockXml.getElementsByTagName('block');
+        if (!Categories[mainIndex]) {
+            preBlockXml = putBlockIn(childs, preBlockXml);
+
+        } else if (!Categories[mainIndex].Pxml) {
+            var newCate = document.createElement("category");
+            newCate.className = Categories[mainIndex].name;
+            newCate.setAttribute("name", Categories[mainIndex].name);
+            newCate = putBlockIn(childs, newCate);
+            setState(mainIndex, "Pxml", newCate);
+            preBlockXml.appendChild(newCate);
+        } else {
+            var newCate = document.createElement("category");
+            newCate.className = Categories[mainIndex].name;
+            newCate.setAttribute("name", Categories[mainIndex].name);
+            newCate = putBlockIn(childs, newCate);
+            setState(mainIndex, "Pxml", newCate);
+            oldCate = preBlockXml.getElementsByClassName(Categories[mainIndex].name)[0]
+            preBlockXml.replaceChild(newCate, oldCate);
+        }
+
+        if (Categories[mainIndex]) {
+
+            setState(mainIndex, "Wxml", blockXml);
+            console.log(Categories[mainIndex].Wxml);
+        }
+        console.log("preBlockXml:");
+        console.log(preBlockXml);
+
+        // var xmlhttp = new window.XMLHttpRequest();
+        // xmlhttp.open("GET", 'toolbox.xml', false);
+        // xmlhttp.send(null);
+        // if (xmlhttp.readyState == 4) {
+        //     var WXml = xmlhttp.responseXML.documentElement;
+        // }
+        // console.log(WXml);
+
+        e = document.getElementById('prespace');
+        e.innerHTML = "";
+        var preWorkspace = Blockly.inject('prespace', {
+            media: '../../media/',
+            toolbox: preBlockXml
+        });
+
+
+    }
+
+    function upDataW(params) {
+        // var mainIndex = getMainIndex();
+        // theCate = Categories[mainIndex].WXml;
+        // console.log(theCate);
+
+        mainIndex = getMainIndex();
+        theCate = Categories[mainIndex].Wxml;
+        console.log(theCate);
+        if (theCate) {
+            childs = theCate.childNodes;
+        } else {
+            childs = {};
+        }
+        newWorkspace = document.createElement('xml');
+        newWorkspace.setAttribute('xmlns', "https://developers.google.com/blockly/xml");
+        newWorkspace = putBlockIn(childs, newWorkspace);
+        console.log(newWorkspace);
+        Bworkspace.clear();
+        Blockly.Xml.domToWorkspace(newWorkspace, Bworkspace);
+    }
+
+    function sendXml(params) {
+
+    }
+
+    function setState(index, type, data) {
+        switch (type) {
+            case "main":
+                for (let i = 0; i < Categories.length; i++) {
+                    Categories[i].main = false;
+                }
+                Categories[index].main = true;
+                break;
+            case "name":
+                Categories[index].name = data;
+                break;
+            case "Wxml":
+                Categories[index].Wxml = data;
+                break;
+            case "Pxml":
+                Categories[index].Pxml = data;
+                break;
+            default:
+                console.log("error");
+                break;
+        }
+    }
+
+    function getMainIndex(params) {
+        for (let i = 0; i < Categories.length; i++) {
+            if (Categories[i].main)
+                return i;
+        }
+        console.log("no main here");
+
+    }
+
+    function addCate(params) {
+        data = prompt("请输入新的目录名:");
+        if (!data) return;
+        //组合新节点
+        var controlBox = document.getElementById('controlBox');
+        var newTr = document.createElement('tr');
+        var newTd = document.createElement('td');
+        newTd.innerText = data;
+        newTr.className = "normalCategory";
+        newTr.appendChild(newTd);
+
+        var CategoryList = document.getElementsByClassName("normalCategory");
+
+
+        newTr.id = Categories.length;
+        newCate = {
+            main: false,
+            name: data,
+            xml: null
+        };
+        Categories.push(newCate);
+        console.log(Categories);
+
+
+        //接下来添加监听
+        newTr.onclick = function() {
+            cate = document.getElementsByClassName("mainCategory")[0];
+            if (cate) cate.className = "normalCategory";
+            this.className = "mainCategory";
+            setState(this.id, "main", true);
+            upDataW();
+        }
+
+        //插入目录
+        var button = document.getElementsByClassName("optionButton");
+        var tbody = document.getElementsByClassName("tbody");
+        tbody[0].insertBefore(newTr, button[0]);
+
+    }
+
+    function subCate(params) {
+
+    }
+</script>
+
+</html>
